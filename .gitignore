@@ -1,0 +1,13 @@
+# Build
+target/
+logs/
+
+# Idea files
+.idea/
+*.iml
+*.ipr
+*.iws
+
+.settings
+.project
+.classpath
