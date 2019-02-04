@@ -56,6 +56,8 @@ public class NioTest {
           int num = selector.select(5000L);
           if (num <= 0) {
             System.out.println("closing selector");
+            selector.close();
+            serverSocket.close();
             break;
           }
 
