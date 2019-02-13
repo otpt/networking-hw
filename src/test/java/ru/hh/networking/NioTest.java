@@ -69,7 +69,7 @@ public class NioTest {
             it.remove();
 
             if (key.isAcceptable()) {
-              // TODO: 1 line removed
+              acceptedRequests.incrementAndGet();
               ServerSocketChannel sscAccept = (ServerSocketChannel) key.channel();
               SocketChannel scAccept = sscAccept.accept();
               scAccept.configureBlocking(false);
@@ -79,8 +79,12 @@ public class NioTest {
               SocketChannel sc = (SocketChannel) key.channel();
               sc.configureBlocking(false);
 
-              // TODO: implement reading donate value, adding it the totalAmount
-              // and writing "ok" response to the client
+              echoBuffer.clear();
+              sc.read(echoBuffer);
+              echoBuffer.flip();
+              totalAmount.addAndGet(echoBuffer.asIntBuffer().get());
+              sc.write(StandardCharsets.UTF_8.encode("ok"));
+              sc.close();
             }
           }
         }
