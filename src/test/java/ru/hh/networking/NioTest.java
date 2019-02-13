@@ -25,14 +25,14 @@ public class NioTest {
   public void byteBufferTest() {
     ByteBuffer buffer = ByteBuffer.allocate(10);
     IntStream.range(0, 5).forEach(i -> buffer.put((byte) i));
-    // TODO: 1 line removed
+    buffer.flip();
     assertEquals(buffer.get(), 0);
     assertEquals(buffer.get(), 1);
     assertEquals(buffer.get(), 2);
-    // TODO: 1 line removed
+    buffer.mark();
     assertEquals(buffer.get(), 3);
     assertEquals(buffer.get(), 4);
-    // TODO: 1 line removed
+    buffer.reset();
     assertEquals(buffer.get(), 3);
   }
 
