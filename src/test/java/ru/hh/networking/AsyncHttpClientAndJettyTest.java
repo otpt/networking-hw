@@ -28,8 +28,8 @@ public class AsyncHttpClientAndJettyTest {
 
     try (final AsyncHttpClient client = asyncHttpClient(
         config()
-            // TODO: 2 lines
-            //     removed
+                .setKeepAlive(true)
+                .setPooledConnectionIdleTimeout(4000)
     )) {
       ClientStats stats = client.getClientStats();
       assertEquals(stats.getTotalActiveConnectionCount(), 0);
