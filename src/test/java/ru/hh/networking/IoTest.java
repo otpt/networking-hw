@@ -9,6 +9,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.util.concurrent.TimeUnit;
 
 import static org.testng.Assert.assertEquals;
 
@@ -26,7 +27,7 @@ public class IoTest {
             DataOutputStream outputStream = new DataOutputStream(socket.getOutputStream());
             while (!socket.isInputShutdown()) {
               String data = inputStream.readUTF();
-              // TODO: 1 line removed
+              TimeUnit.SECONDS.sleep(2);
               outputStream.writeUTF(data + data);
               outputStream.flush();
             }
@@ -34,7 +35,7 @@ public class IoTest {
             System.out.println("exception:" + e.getMessage());
           }
         }
-      } catch (IOException e) { // TODO: line can be modified
+      } catch (IOException | InterruptedException e) {
         e.printStackTrace();
       }
     });
@@ -48,14 +49,18 @@ public class IoTest {
 
       // client 1 success request
 
-      // TODO: implement successfull client request
+      socket = new Socket("localhost", port);
+      out = new DataOutputStream(socket.getOutputStream());
+      in = new DataInputStream(socket.getInputStream());
+      out.writeUTF("test");
+      answer = in.readUTF();
 
       assertEquals(answer, "testtest");
       socket.close();
 
       // client 2 timeout exception
       socket = new Socket("localhost", port);
-      // TODO: 1 line removed
+      socket.setSoTimeout(1000);
       out = new DataOutputStream(socket.getOutputStream());
       in = new DataInputStream(socket.getInputStream());
       out.writeUTF("test");
