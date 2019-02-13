@@ -5,11 +5,7 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousChannelGroup;
-import java.nio.channels.AsynchronousServerSocketChannel;
-import java.nio.channels.AsynchronousSocketChannel;
-import java.nio.channels.CompletionHandler;
-import java.nio.channels.InterruptedByTimeoutException;
+import java.nio.channels.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
@@ -59,22 +55,35 @@ public class AsyncIoTest {
               }
               System.out.println("Thread " + Thread.currentThread().getName() + " read " + bytes + " from " + socketChannel);
 
-              // TODO: get task id from incoming data and set it to the following variable
-              int taskId = -12345; // TODO: should be fixed
+              attachment.flip();
+              int taskId = attachment.asIntBuffer().get();
 
               String prefix = "Thread " + Thread.currentThread().getName();
               System.out.println(prefix + " is processing task " + taskId + " for " + SINGLE_TASK_DURATION + " millis");
 
-              // TODO: mimic some business
-              // and increment success requests counter
+              Thread.sleep(SINGLE_TASK_DURATION);
+              successRequests.incrementAndGet();
 
               System.out.println(prefix + " finished task " + taskId);
-            } catch (IOException e) { // TODO: line can be modified
+            } catch (IOException | InterruptedException e) {
               e.printStackTrace();
             }
             CompletionHandler<Integer, ByteBuffer> readCompletionHandler = this;
-            // TODO: implement writing some data to client,
-            //  since it's waiting for it at line 122 in order to count down the latch
+            socketChannel.write(attachment, attachment, new CompletionHandler<Integer, ByteBuffer>() {
+              @Override
+              public void completed(Integer result, ByteBuffer attachment) {
+                if (attachment.hasRemaining()) {
+                  socketChannel.write(attachment, attachment, this);
+                } else {
+                  attachment.clear();
+                  socketChannel.read(attachment, attachment, readCompletionHandler);
+                }
+              }
+
+              @Override
+              public void failed(Throwable exc, ByteBuffer attachment) {
+              }
+            });
           }
 
           @Override
@@ -120,8 +129,7 @@ public class AsyncIoTest {
                 client.write(attachment, attachment, this);
               } else {
                 attachment.clear();
-                // TODO: modify following line
-                client.read(attachment, attachment, new CompletionHandler<Integer, ByteBuffer>() {
+                client.read(attachment, 3, TimeUnit.SECONDS, attachment, new CompletionHandler<Integer, ByteBuffer>() {
                   @Override
                   public void completed(Integer result, ByteBuffer attachment) {
                     successLatch.countDown();
